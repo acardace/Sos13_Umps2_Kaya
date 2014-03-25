@@ -1,0 +1,26 @@
+Documentazione StrangeOperatingSystem - Phase1
+
+*************************************************** - Introduzione - ****************************************************************
+
+Una delle convenzioni adottate è quella di dichiarare le funzioni di supporto con il prefisso "_" (underscore). Inoltre è stato utilizzato l'attributo "static" in modo che le funzioni di supporto siano visibili ed utilizzabili solo nel file in cui sono state dichiarate, poiché non fanno parte dell'interfaccia verso l'utente e non si vuole che siano visibili a quest'ultimo.
+
+Nella maggior parte delle funzioni vengono fatti i *classici* controlli per verificare lo stato delle strutture dati e agire di conseguenza (*head == NULL -> pila vuota, etc...). Sono state fatte delle assunzioni circa la correttezza con cui vengono passati i vari parametri di ingresso alle funzioni: si è assunto diverse volte che se una funzione ha un parametro in ingresso di tipo pcb_t*, allora questo è diverso da NULL, perchè ci si aspetta che l'utente passi l'indirizzo di una variabile di tipo pcb_t. Sta al buon senso dell'utente non effettuare chiamate di funzione con argomenti volutamente errati (poiché non avrebbero senso; es: headProcQ(NULL);)
+
+Si è pensato di creare un modulo, "aux.c" in cui sono presenti le varie funzioni ausiliarie che sono servite e che serviranno in futuro per il progetto di sistemi operativi. Per ora è stata implementata una versione ricorsiva della memset che è stata utilizzata per azzerare, quando necessario, il campo p_s di tipo state_t della struttura dati pcb_t.
+
+Si è spesso utilizzata una tecnica denominata di "lookahead" nel caso in cui ci sia il bisogno di eliminare un elemento da una lista concatenata: questa tecnica consiste nel posizionarsi sull'elemento precedente rispetto a quello su cui si va a fare il controllo; se l'elemento successivo rispetto a quello dove ci troviamo è l'elemento da eliminare allora facciamo puntare il puntatore all'elemento successivo, dell'elemento dove ci troviamo, al puntatore all'elemento successivo del nodo da cancellare.
+
+*********************************************** - Descrizione delle funzioni - ********************************************************
+ 
+Di seguito viene riportata una piccola spiegazione (per le funzioni per cui c'è bisogno) sulle scelte progettuali adottate per le varie procedure/funzioni
+
+insertProcQ: poiché non precisato nelle specifiche, si è deciso di non effettuare controlli per verificare se l'elemento che si sta inserendo è già presente nella coda. Poiché le code di processi vengono usate dai semafori, ed in particolare insertProcQ viene usata dalla insertBlocked, si lascia all'utente l'onere di verificare che il processo p non sia già bloccato sul semaforo con identificatore "key" attraverso il campo p_semKey.
+
+outProcQ: ritorna NULL anche nel caso in cui head == NULL: ciò equivale a dire che p non è presente nella coda in quanto quest'ultima è vuota.
+
+outBlocked: poiché le specifiche di outBlocked non erano presenti nel pdf di phase1 si è assunto che ritorni NULL nel caso in cui p non sia bloccato su nessun semaforo oppure ritorni p stesso in caso di successo. N.B.: anche se non specificato, è palese che l'outBlocked, come la removeBlocked, deve eliminare il semaforo nel caso in cui l'elemento che abbiamo rimosso dalla coda sia l'ultimo rimasto nella coda del semaforo
+
+outChildBlocked: rimuove p e tutti i suoi discendenti dai rispettivi semafori su cui sono bloccati
+
+forallBlocked, forallProcQ: queste funzioni sono state dichiarate come inline e sono state definite nei rispettivi file ".e". Si è usato l'attributo static per evitare un errore in fase di linking, più precisamente per evitare che il compilatore generi un simbolo per la funziona ogni qual volta i file ".e" vengono inclusi in un modulo.
+
